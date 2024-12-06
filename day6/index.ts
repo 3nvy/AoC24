@@ -28,6 +28,7 @@ const directionVectors = [
  * Solution Part 1
  */
 
+let time = Date.now();
 let currentPos = [...START_POS];
 const visitedPositions = new Set([currentPos.join(",")]);
 
@@ -37,6 +38,7 @@ while (true) {
   const newX = currentPos[0] + nextX;
   const newY = currentPos[1] + nextY;
 
+  // Out of bounds means we exited the puzzle
   if (newX < 0 || newX >= MAX_X || newY < 0 || newY >= MAX_Y) {
     break;
   }
@@ -54,7 +56,12 @@ while (true) {
   }
 }
 
-console.log("Part 1: ", visitedPositions.size);
+console.log(
+  "Part 1: ",
+  visitedPositions.size,
+  "Time: ",
+  (Date.now() - time) / 1000
+);
 
 /**
  * Solution Part 2
@@ -65,54 +72,64 @@ console.log("Part 1: ", visitedPositions.size);
  * In an obstacle puzzle, we can detect we are in a loop if the same step has been traversed twice, through the same direction,
  * so in order to detect this, we store a collision log for each obstacle, and every time we hit a new obstacle, we compare and see
  * if we had done so already by the same direction before. If so, we are in a loop!
+ *
+ * OPTIMIZATIONS
+ *
+ * - Use the traversed tiles recorded in part 1, these are the only ones the guard is guaranteed to go to
+ *   so the other tiles are useless, as the guard will never go there until the new obstacle is places.
  */
 
+time = Date.now();
 let neededObstacles = 0;
 
-for (let y = 0; y < MAX_Y; y++) {
-  for (let x = 0; x < MAX_X; x++) {
-    const step = matrix[y][x];
+time = Date.now();
 
-    if (step === ".") {
-      // Resets position and direction
-      directionIndex = 0;
-      currentPos = [...START_POS];
+for (const pos of [...visitedPositions]) {
+  debugger;
+  const [x, y] = pos.split(",").map(Number);
+  const step = matrix[y][x];
 
-      // Storage for hit log
-      const hitLog = new Set();
+  if (step === ".") {
+    // Resets position and direction
+    directionIndex = 0;
+    currentPos = [...START_POS];
 
-      while (true) {
-        const [nextX, nextY] =
-          directionVectors[directionIndex % directionVectors.length];
-        const newX = currentPos[0] + nextX;
-        const newY = currentPos[1] + nextY;
+    // Storage for hit log
+    const hitLog = new Set();
 
-        if (newX < 0 || newX >= MAX_X || newY < 0 || newY >= MAX_Y) {
+    while (true) {
+      const [nextX, nextY] =
+        directionVectors[directionIndex % directionVectors.length];
+      const newX = currentPos[0] + nextX;
+      const newY = currentPos[1] + nextY;
+
+      // Out of bounds means we exited the puzzle
+      if (newX < 0 || newX >= MAX_X || newY < 0 || newY >= MAX_Y) {
+        break;
+      }
+
+      const nextStep = matrix[newY][newX];
+
+      // Checks if next step is obstacle or the place of the new obstacle (want to avoid manipulating or duplicating matrixes for a single tile)
+      if (nextStep === "#" || (newX === x && newY === y)) {
+        // Creates a hit log and chesks if it already exists. If so, obstacle is valid, if not adds the log to the list and continues
+        const hitRecord = `${newX},${newY},${currentPos[0]},${currentPos[1]}`;
+        const hasHitRecord = hitLog.has(hitRecord);
+
+        if (hasHitRecord) {
+          neededObstacles++;
           break;
         }
 
-        const nextStep = matrix[newY][newX];
-
-        // Rotates the direction if obstacle found
-        if (nextStep === "#" || (newX === x && newY === y)) {
-          const hitRecord = `${newX},${newY},${currentPos[0]},${currentPos[1]}`;
-          const hasHitRecord = hitLog.has(hitRecord);
-
-          if (hasHitRecord) {
-            neededObstacles++;
-            break;
-          }
-
-          directionIndex++;
-          hitLog.add(hitRecord);
-        }
-        // Moves to new position and adds it to the Set
-        else {
-          currentPos = [newX, newY];
-        }
+        directionIndex++;
+        hitLog.add(hitRecord);
+      }
+      // Moves to new position and adds it to the Set
+      else {
+        currentPos = [newX, newY];
       }
     }
   }
 }
 
-console.log("Part 2: ", neededObstacles);
+console.log("Part 2: ", neededObstacles, "Time: ", (Date.now() - time) / 1000);
