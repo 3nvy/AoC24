@@ -90,12 +90,11 @@ const usedObstacleLocations = new Set();
 for (let i = 1; i < fullPathHistory.length; i++) {
   const [x, y] = fullPathHistory[i].split(",").map(Number);
 
-  if (!usedObstacleLocations.has(`${x},${y}`)) {
-    usedObstacleLocations.add(`${x},${y}`);
-    const step = matrix[y][x];
+  const step = matrix[y][x];
 
-    if (step === ".") {
-      // Resets position and direction
+  if (step === ".") {
+    if (!usedObstacleLocations.has(`${x},${y}`)) {
+      usedObstacleLocations.add(`${x},${y}`);
 
       let [sX, sY, directionIndex = 0] = fullPathHistory[i - 1]
         .split(",")
