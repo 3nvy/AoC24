@@ -31,6 +31,7 @@ const directionVectors = [
 let time = Date.now();
 let currentPos = [...START_POS];
 const visitedPositions = new Set([currentPos.join(",")]);
+const fullPathHistory: string[] = []; // The full history path will be used by part 2
 
 while (true) {
   const [nextX, nextY] =
@@ -53,6 +54,7 @@ while (true) {
   else {
     currentPos = [newX, newY];
     visitedPositions.add(`${newX},${newY}`);
+    fullPathHistory.push(`${newX},${newY},${directionIndex}`);
   }
 }
 
@@ -77,53 +79,63 @@ console.log(
  *
  * - Use the traversed tiles recorded in part 1, these are the only ones the guard is guaranteed to go to
  *   so the other tiles are useless, as the guard will never go there until the new obstacle is places.
+ *
+ * - Start each path from the tile traversed by the guard on part 1, before the placed obstacle. Every path behind is irrelevant as it will always be the same
+ *   and only change right before the newly placed obstacle
  */
 
 time = Date.now();
 let neededObstacles = 0;
+const usedObstacleLocations = new Set();
+for (let i = 1; i < fullPathHistory.length; i++) {
+  const [x, y] = fullPathHistory[i].split(",").map(Number);
 
-for (const pos of [...visitedPositions]) {
-  const [x, y] = pos.split(",").map(Number);
-  const step = matrix[y][x];
+  if (!usedObstacleLocations.has(`${x},${y}`)) {
+    usedObstacleLocations.add(`${x},${y}`);
+    const step = matrix[y][x];
 
-  if (step === ".") {
-    // Resets position and direction
-    directionIndex = 0;
-    currentPos = [...START_POS];
+    if (step === ".") {
+      // Resets position and direction
 
-    // Storage for hit log
-    const hitLog = new Set();
+      let [sX, sY, directionIndex = 0] = fullPathHistory[i - 1]
+        .split(",")
+        .map(Number);
+      currentPos = [sX, sY];
 
-    while (true) {
-      const [nextX, nextY] =
-        directionVectors[directionIndex % directionVectors.length];
-      const newX = currentPos[0] + nextX;
-      const newY = currentPos[1] + nextY;
+      // Storage for hit log
+      const hitLog = new Set();
 
-      // Out of bounds means we exited the puzzle
-      if (newX < 0 || newX >= MAX_X || newY < 0 || newY >= MAX_Y) {
-        break;
-      }
+      while (true) {
+        const [nextX, nextY] =
+          directionVectors[directionIndex % directionVectors.length];
+        const newX = currentPos[0] + nextX;
+        const newY = currentPos[1] + nextY;
 
-      const nextStep = matrix[newY][newX];
-
-      // Checks if next step is obstacle or the place of the new obstacle (want to avoid manipulating or duplicating matrixes for a single tile)
-      if (nextStep === "#" || (newX === x && newY === y)) {
-        // Creates a hit log and chesks if it already exists. If so, obstacle is valid, if not adds the log to the list and continues
-        const hitRecord = `${newX},${newY},${currentPos[0]},${currentPos[1]}`;
-        const hasHitRecord = hitLog.has(hitRecord);
-
-        if (hasHitRecord) {
-          neededObstacles++;
+        // Out of bounds means we exited the puzzle
+        if (newX < 0 || newX >= MAX_X || newY < 0 || newY >= MAX_Y) {
           break;
         }
 
-        directionIndex++;
-        hitLog.add(hitRecord);
-      }
-      // Moves to new position and adds it to the Set
-      else {
-        currentPos = [newX, newY];
+        const nextStep = matrix[newY][newX];
+
+        // Checks if next step is obstacle or the place of the new obstacle (want to avoid manipulating or duplicating matrixes for a single tile)
+        if (nextStep === "#" || (newX === x && newY === y)) {
+          // Creates a hit log and chesks if it already exists. If so, obstacle is valid, if not adds the log to the list and continues
+          const hitRecord = `${newX},${newY},${currentPos[0]},${currentPos[1]}`;
+          const hasHitRecord = hitLog.has(hitRecord);
+
+          if (hasHitRecord) {
+            neededObstacles++;
+            break;
+          }
+
+          directionIndex++;
+          hitLog.add(hitRecord);
+        }
+        // Moves to new position and adds it to the Set
+        else {
+          currentPos = [newX, newY];
+        }
       }
     }
   }
