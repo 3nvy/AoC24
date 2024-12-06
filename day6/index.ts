@@ -82,8 +82,6 @@ console.log(
 time = Date.now();
 let neededObstacles = 0;
 
-time = Date.now();
-
 for (const pos of [...visitedPositions]) {
   const [x, y] = pos.split(",").map(Number);
   const step = matrix[y][x];
