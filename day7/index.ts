@@ -32,7 +32,7 @@ const validCalibrations = calibrations.filter(([result, numbers], idx) => {
      *
      * 0 => +  |  1 => *
      */
-    const combinationString = (currentCombination >> 0)
+    const combinationString = currentCombination
       .toString(2)
       .padStart(numbers.length - 1, "0");
 
@@ -68,19 +68,6 @@ console.log("Part 1: ", resultPart1, "Time: ", (Date.now() - time) / 1000);
  * Solution Part 2
  */
 
-// Converts decimals to base3
-const toBase3 = (num: number) => {
-  if (num === 0) return "0";
-
-  let result = "";
-  while (num > 0) {
-    const remainder = num % 3; // Get the remainder
-    result = remainder.toString() + result; // Prepend the remainder
-    num = Math.floor(num / 3); // Divide by 3
-  }
-  return result;
-};
-
 time = Date.now();
 
 const validCalibrationsAfterAdjustment = calibrations
@@ -97,10 +84,9 @@ const validCalibrationsAfterAdjustment = calibrations
        *
        * 0 => +  |  1 => *  |  2 => ||
        */
-      const combinationString = toBase3(currentCombination).padStart(
-        numbers.length - 1,
-        "0"
-      );
+      const combinationString = currentCombination
+        .toString(3)
+        .padStart(numbers.length - 1, "0");
 
       const currentOperationResult = numbers.reduce((acc, num, idx) => {
         if (idx === 0) {
