@@ -40,7 +40,7 @@ const validCalibrations = calibrations.filter(([result, numbers], idx) => {
       if (idx === 0) {
         return num;
       } else {
-        return combinationString[idx - 1] === "0" ? acc * num : acc + num;
+        return combinationString[idx - 1] === "0" ? acc + num : acc * num;
       }
     }, 0);
 
