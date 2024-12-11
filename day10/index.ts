@@ -69,12 +69,9 @@ console.log("Part 1: ", result, "Time: ", (Date.now() - time) / 1000);
  * Solution Part 2
  */
 
-const lookupTrailTwo = (
-  x: number,
-  y: number,
-  val: number,
-  endPos: Map<string, number>
-) => {
+const lookupTrailTwo = (x: number, y: number, val: number) => {
+  let trails = 0;
+
   for (const dir of directionVectors) {
     const nX = x + dir[0];
     const nY = y + dir[1];
@@ -83,30 +80,27 @@ const lookupTrailTwo = (
       const nValue = matrix[nY][nX];
 
       if (val + 1 === nValue && nValue == 9) {
-        const val = endPos.get(`${nX},${nY}`) ?? 0;
-        endPos.set(`${nX},${nY}`, val + 1);
+        trails++;
       } else if (val + 1 === nValue) {
-        lookupTrailTwo(nX, nY, nValue, endPos);
+        const deepTrails = lookupTrailTwo(nX, nY, nValue);
+        trails += deepTrails;
       }
     }
   }
+
+  return trails;
 };
 
-const locationMap: Map<string, number> = new Map();
+let resultPartTwo = 0;
 time = Date.now();
 
 for (let y = 0; y < MAX_Y; y++) {
   for (let x = 0; x < MAX_X; x++) {
     const isStartPos = matrix[y][x] === 0;
     if (isStartPos) {
-      lookupTrailTwo(x, y, 0, locationMap);
+      resultPartTwo += lookupTrailTwo(x, y, 0);
     }
   }
 }
 
-const resultPart2 = [...locationMap.values()].reduce(
-  (acc, val) => acc + val,
-  0
-);
-
-console.log("Part 2: ", resultPart2, "Time: ", (Date.now() - time) / 1000);
+console.log("Part 2: ", resultPartTwo, "Time: ", (Date.now() - time) / 1000);
